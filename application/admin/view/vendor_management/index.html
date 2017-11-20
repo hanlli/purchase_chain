@@ -1,0 +1,179 @@
+{extend name="public/base"/}
+{block name="body"}
+<div class="main-box no-header clearfix">
+  <header class="main-box-header clearfix">
+    <!-- 标题栏 -->
+    <div class="pull-left">
+      <h2>{$meta_title}</h2>
+    </div>
+  </header>
+  <div class="" >
+    <button id="addbtn" class="btn  btn-success" style="margin-left: 30px;" target-form="ids" url="{:url('del')}">添加</button>
+    <button id="editbtn" class="btn  btn-success" style="margin-left: 200px;" target-form="ids" url="">修改</button>
+    <button id="deletebtn" class="btn  btn-success" style="margin-left: 200px;" target-form="ids" url="" >删除</button>
+    <button id="btn" class="btn " style="margin-left: 150px;" target-form="ids" url="" >确定</button>
+  </div>
+
+  <div class="main-box-body clearfix">
+    <!-- 数据列表 -->
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th></th>
+          <th>供应商ID</th>
+          <th>供应商名称</th>
+          <th>开拓渠道</th>
+          <th>发货地</th>
+          <th>折扣方式</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr id="add" style="display: none;">
+          <th></th>
+          <th><input class="adcon" type="text" name="vendorid"/></th>
+          <th><input class="adcon" type="text" name="vendorname"/></th>
+          <th><input class="adcon" type="text" name="channel"/></th>
+          <th><select name="conutryname">
+                 <option value="">请选择</option>
+                 <option value="">意大利</option>
+                 <option value="">香港</option>
+                 <option value="">内地</option>
+              </select>
+          </th>
+          <th>
+            <select name="discount_code">
+                 <option value="">请选择</option>
+                 <option value="">季节折扣</option>
+                 <option value="">折扣价/品牌折扣</option>
+                 <option value="">零售价/品牌折扣</option>
+                 <option value="">成本价/品牌折扣</option>
+            </select>
+          </th>
+        </tr>
+      {volist name="data" id="vdata"}
+      <tr class="list">
+        <th class="vendor_id" style="display: none; "><input class="did"  type="checkbox" value="{$vdata.vendor_id}"/></th>
+        <th class="vendor"></th>
+        <th>{$vdata.prefix}</th>
+        <th>{$vdata.name}</th>
+        <th>{$vdata.channel}</th>
+        <th>意大利</th>
+        <th>季节折扣</th>
+      </tr>
+      {/volist}
+        {volist name="data" id="vdata"}
+        <tr class="edit" style="display: none; ">
+          <th><input  type="hidden" value="{$vdata.vendor_id}"/></th>
+          <th><input  type="text" value="{$vdata.prefix}"/></th>
+          <th><input  type="text" value="{$vdata.name}"/></th>
+          <th><input  type="text" value="{$vdata.channel}"/></th>
+          <th>
+            <select name="conutryname">
+                  <option value="1" selected="selected">意大利</option>
+                  <option value="2">香港</option>
+                  <option value="3">内地</option>
+            </select>
+          </th>
+          <th>
+            <select name="discount_code">
+              <option value="" selected="selected">季节折扣</option>
+              <option value="" >折扣价/品牌折扣</option>
+              <option value="">零售价/品牌折扣</option>
+              <option value="">成本价/品牌折扣</option>
+            </select>
+          </th>
+        </tr>
+        {/volist}
+      </tbody>
+    </table>
+    <!-- 分页 -->
+
+    <!-- /分页 -->
+  </div>
+</div>
+{/block}
+{block name="script"}
+<script type="text/javascript">
+  $(function () {
+      $("#addbtn").on('click',function () {
+          $(this).addClass('btn-success');
+          $("#editbtn").removeClass('btn-success');
+          $("#deletebtn").removeClass('btn-success');
+          $("#btn").addClass('btn-success');
+          $("#add").show();
+          $(".list").show();
+          $(".edit").hide();
+          $(".vendor_id").hide();
+          $(".vendor").show();
+          $('.list >th>input:checked').attr('checked',false);
+
+      })
+      $("#editbtn").on('click',function () {
+          $(this).addClass('btn-success');
+          $("#addbtn").removeClass('btn-success');
+          $("#deletebtn").removeClass('btn-success');
+          $("#btn").addClass('btn-success');
+          $("#add").hide();
+          $(".list").hide();
+          $(".edit").show();
+          $(".vendor_id").hide();
+          $(".vendor").show();
+          $('.list >th>input:checked').attr('checked',false);
+      })
+      $("#deletebtn").on('click',function () {
+          $(this).addClass('btn-success');
+          $("#addbtn").removeClass('btn-success');
+          $("#editbtn").removeClass('btn-success');
+          $("#btn").addClass('btn-success');
+          $("#add").hide();
+          $(".list").show();
+          $(".edit").hide();
+          $(".vendor_id").show();
+          $(".vendor").hide();
+      });
+      $("#btn").on('click',function () {
+          var did="";
+          var econtent="";
+          var    acontent="" ;
+          $('.list >th>input:checked').each(function () {
+              did += ","+$(this).val();
+          });
+          $('.edit >th>input').each(function () {
+              econtent += ","+$(this).val();
+          });
+          $('#add >th>input').each(function () {
+              acontent += ","+$(this).val();
+          });
+          var di = did.split(',');
+          var ac = acontent.split(',');
+          if(ac[1]){
+              var answer = confirm('确定提交数据吗？');
+              if(answer){
+                  var cur_url = "{:url('admin/vendor_management/add')}";
+                  window.location.href =cur_url+"?content="+acontent;
+              }
+
+
+          }
+
+          if(di[1]!=null){
+              var answer = confirm('确定提交数据吗？');
+              if(answer){
+                  var cur_url = "{:url('admin/vendor_management/delete')}";
+                  window.location.href =cur_url+"?vendor_ids="+did;
+              }
+
+          }
+          if(!di[1] && !ac[1]){
+              var answer = confirm('确定提交数据吗？');
+              if(answer){
+                  var cur_url = "{:url('admin/vendor_management/update')}";
+                  window.location.href =cur_url+"?content="+econtent;
+              }
+
+          }
+
+      })
+  })
+</script>
+{/block}

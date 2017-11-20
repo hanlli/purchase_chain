@@ -1,0 +1,391 @@
+{extend name="public/base"/}
+{block name="body"}
+<div class="main-box no-header clearfix">
+  <header class="main-box-header clearfix">
+    <!-- 标题栏 -->
+    <div class="pull-left">
+      <h2>{$meta_title}</h2>
+    </div>
+    <div class="pull-right">
+      <button class="btn btn-danger ajax-post confirm" target-form="item_ids" url="{:url('del')}">删 除</button>
+      <button class="btn btn-default ajax-post" target-form="ids" url="">清空无效商品</button>
+      <button class="btn btn-success ajax-post" id="order_add" type="button" url="{:url('Order/add')}" >提交订单</button>
+    </div>
+    <div class="pull-right" style="margin-right: 30px;">
+      <h2>
+        <span>货品种类: </span><span id="items_type_count">{$items_type_count}</span><span>件</span>
+        <span>合计数量: </span><span id="items_count">{$items_count}</span><span>件</span>
+        <span>合计金额: </span><span id="items_total">{$items_total}</span>
+      </h2>
+    </div>
+  </header>
+  <div class="main-box-body clearfix">
+    <!-- 数据列表 -->
+    <table border="1" class="table table-striped">
+      <thead>
+        <tr>
+          <th class="row-selected row-selected">
+            <input class="check-all" type="checkbox"/>全选
+          </th>
+          <!-- <th>商品ID</th> -->
+          <!-- <th>商品名称</th> -->
+          <th colspan="3">商品属性</th>
+          <!-- <th>商品款号</th> -->
+          <th>市场价</th>
+          <th>折扣</th>
+          <th>采购价</th>
+          <th class="size-th">尺码</th>
+          <th>数量</th>
+          <th>采购数量</th>
+          <th>金额</th>
+        </tr>
+      </thead>
+      <tbody>
+        {php}$begin =0;{/php}
+        {volist name="list" id="vo"}
+        {php}$begin++;{/php}
+          <tr class="lists order_list{$begin}">
+            <td style="text-align: center;">
+              <input class="ids cart_check_all" type="checkbox" name="id[]" value="{$vo['cart_id']}" />
+            </td>
+            <!-- <td class="ft12">{$vo.cart_id}</td> -->
+            <td class="fxw100 cart_item_img" style="position: relative;">
+              <div class="img-thumbnail-box">
+                <img src="{$vo.pproduct.image}" class="img-thumbnail" >
+                <img class="bigimg hide" src="{$vo.pproduct.image}" class="img-thumbnail" >
+              </div>
+              <!-- <div class="ft12 text-center">{$vo.pproduct.chs_name}</div> -->
+            </td>
+            <td>
+              <div>【名称】{$vo.pproduct.chs_name}</div>
+              <div>【品牌】{$vo.pproduct.brand}</div>
+              <div>【品类】{$vo.pproduct.category}</div>
+              <div>【季节】{$vo.pproduct.season}</div>
+              <div>【性别】{$vo.pproduct.goods_type}</div>
+            </td>
+            <td>{$vo.pproduct.code}</td>
+            <td>{$vo.pproduct.msrp}</td>
+            <td>{$vo.pproduct.discount}</td>
+            <td class="price_one">{$vo.pproduct.price}</td>
+            <td class="td-size">
+              {volist name="$vo.cart_product" id="prd"}
+                <div class="prd-size" style="padding: 0 5px;">
+
+                  <input class="item_ids cart_ids" type="checkbox" name="item_id[{$prd.product_id}]" value="{$prd.product.product_id}" />
+                  <span>{$prd.product.size}</span>
+                </div>
+              {/volist}
+            </td>
+            <td class="td-size" style="text-align: center;">
+              {volist name="$vo.cart_product" id="prd"}
+
+                <div class="prd-size buy-num-wrapper" >
+                     <button class="button_desc"> - </button>
+                      <input name="{$cart_input_name}[{$prd.product_id}]" id="{$prd.product_id}" value="{$prd.quantity}" max="{$prd.product.stock}" min="1" class="cart_cate buy-num  type_num">                   
+                     <button class="button_asc"> + </button>
+                </div>
+                
+              {/volist}
+            </td>
+            <td class="td-size">
+                <div class="quan_display_none">
+                    {assign name="$vo.total_qty" value="0" /}
+                    {volist name="$vo.cart_product" id="prd"}
+                        {php}$vo['total_qty'] += (int)$prd['quantity'];{/php}
+                    {/volist}
+                    {$vo.total_qty}
+                </div>
+                
+
+                <span class="quantity_tol">
+                
+                </span>
+            </td>
+            <td class="td-size">
+                <div class="price_display_none">
+                    {$vo.total_qty * $vo.pproduct.price}
+                </div>
+              
+              
+
+                <span class="price_tol">
+                  
+                </span>
+            </td>
+            
+          </tr>
+        {/volist}
+      </tbody>
+    </table>
+    <!-- 分页 -->
+    {$page}
+    <!-- /分页 -->
+  </div>
+</div>
+{/block}
+{block name="script"}
+<script type="text/javascript">
+$('.img-thumbnail-box').mouseover(function() {
+    $(this).children('.bigimg').removeClass('hide');
+});
+$('.img-thumbnail-box').mouseleave(function() {
+    $(this).children('.bigimg').addClass('hide');
+});
+
+
+function getSelectNum(checked,checked_num){
+    //统计当前进货单 选中的商品数量
+    var quantity =0;
+    $('input[name^="item_id"]:checked').each(function(key,elem){    
+       
+        checked_num.each(function(key1,elem1){
+            
+            if(elem.value == elem1.id){
+               
+                quantity += parseInt(elem1.value);
+
+            }
+        });
+        
+    });
+
+    return quantity;
+};
+//所有商品全选 
+$(".check-all").click(function() {
+    $(".ids").prop("checked", this.checked);
+    $(".cart_ids").prop("checked", this.checked);
+    var len =$(".lists").length;
+    for (var i = len; i >= 1; i--) {
+        var quantity =   $(".order_list"+i).children().children('.quan_display_none').html();
+        var price    =   $(".order_list"+i).children().children('.price_display_none').html();
+        $(".order_list"+i).children().children('.quantity_tol').html(quantity);
+        $(".order_list"+i).children().children('.price_tol').html(price);   
+    };
+     
+
+  
+});
+//单个商品 全选 
+$(".cart_check_all").click(function() {
+    var checked =$(this).parent().siblings().children().children(".cart_ids");
+
+    checked.prop("checked", this.checked);
+   
+    if(checked.prop("checked") == true){
+        var checked_num = $(this).parent().siblings().children().children('.cart_cate');
+
+        var quantity  =getSelectNum(checked,checked_num);
+
+        $(this).parent().siblings().children('.quantity_tol').html(quantity);
+
+        var price = $(this).parent().parent().find('.price_one').html();
+
+        var allprice =quantity*price;
+
+        var allprice_html = "<span>"+allprice+"</span>";
+
+        $(this).parent().parent().find('.price_tol').html(allprice_html);
+    }else{
+        $(this).parent().siblings().children('.quantity_tol').html('');
+
+
+        var allprice_html = "<span></span>";
+
+        $(this).parent().parent().find('.price_tol').html(allprice_html);
+    }
+
+});
+//单个商品 选择型号
+$(".cart_ids").click(function() {
+
+    var option = $(this).parent().parent().siblings().children().children(".cart_cate");
+
+    var checked =$(this).parent().parent().children().children(".cart_ids");
+
+    var checked_num = $(this).parent().parent().siblings().children().children('.cart_cate');
+
+    var quantity  =getSelectNum(checked,checked_num);
+    
+     
+    $(this).parent().parent().siblings().children('.quantity_tol').html(quantity);
+
+    var price = $(this).parent().parent().parent().find('.price_one').html();
+
+    var allprice =quantity*price;
+    var allprice_html = "<span>"+allprice+"</span>"
+    $(this).parent().parent().parent().find('.price_tol').html(allprice_html);
+
+
+
+});
+
+//单个商品选择 数量
+$(".cart_cate").change(function() {
+    var a = $(this).parent().find(".cart_cate").val();
+    // 判断 库存 
+    var maxinput =$(this).parent().children('input');
+    var maxnum  =maxinput['0']['max'] + 1;
+    if(a<=0){
+      $(this).parent().find(".cart_cate").removeClass("type_num");
+      $(this).parent().find(".cart_cate").addClass("type_num_error");
+      return;
+    }else if(a>=maxnum){
+      $(this).parent().find(".cart_cate").removeClass("type_num");
+      $(this).parent().find(".cart_cate").addClass("type_num_error");
+      return;
+    }
+
+    $(this).parent().find(".cart_cate").removeClass("type_num_error");
+    $(this).parent().find(".cart_cate").addClass("type_num");
+
+    var checked =$(this).parent().parent().siblings().children().children(".cart_ids");
+
+    var checked_num = $(this).parent().parent().children().children('.cart_cate');
+  
+    var quantity  =getSelectNum(checked,checked_num);
+    
+     
+    $(this).parent().parent().siblings().children('.quantity_tol').html(quantity);
+
+    var price = $(this).parent().parent().parent().find('.price_one').html();
+
+    var allprice =quantity*price;
+    var allprice_html = "<span>"+allprice+"</span>"
+    $(this).parent().parent().parent().find('.price_tol').html(allprice_html);
+
+});
+
+
+$('#order_add').click(function() {
+    var target, query, buy_nums;
+    var that = this;
+    target = $(this).attr('url');
+    var order_product = {};
+    $('.item_ids:checked').each(function(key, cp){
+      var pd_num = $('input[name="pd['+$(cp).val()+']"]');
+      if(typeof(pd_num) != "undefined") {
+        order_product[$(cp).val()] = pd_num.val();
+      }
+    });
+
+    //检查加入进货单的商品数量是否在最大最小值范围内，以及是否是整数
+    $('.buy-num-wrapper').removeClass('error');
+    $('.buy-num-wrapper span.text-danger').remove();
+    
+    //如果有检测不通过的，则添加warning class并返回
+    if($('.buy-num-wrapper.error').length>0) {
+      updateAlert('数量有误，请检查', 'danger');
+      return;
+    }
+    //ajax调用cart add接口，更新进货单
+    query = order_product;
+
+    $(that).addClass('disabled').attr('autocomplete', 'off').prop('disabled', true);
+    $.post(target, query).success(function(data) {
+      if (data.code == 1) {
+        //成功返回
+        var ret_data = data.data;
+        $('#items_total').text(ret_data.items_total);
+        $('#items_count').text(ret_data.items_count);
+        updateAlert(data.msg + ' 页面即将自动刷新~', 'success');
+        setTimeout(function() {
+          $(that).removeClass('disabled').prop('disabled', false);
+          location.reload();
+        }, 1000);
+      } else {
+        updateAlert(data.msg, 'danger');
+        var ret_data = data.data, msg;
+        $.each(ret_data, function(index, elem) {
+          var err_elem = $('input[name=\''+'{$cart_input_name}'+'\['+elem.product_id+'\]\''+']');
+          msg = '数量不能超过'+elem.max_qty;
+          $(err_elem).parent().addClass('error');
+          $(err_elem).parent().append('<span class="text-danger">'+msg+'</span>');
+        });
+        setTimeout(function() {
+          $(that).removeClass('disabled').prop('disabled', false);
+        }, 1000);
+      }
+    });
+    return true;
+  });
+
+
+$(".button_desc").click(function(){
+    var a = $(this).parent().find(".cart_cate").val();
+    var maxinput =$(this).parent().children('input');
+    var maxnum  = maxinput['0']['max'];
+
+    var a = $(this).parent().find(".cart_cate").val();
+    var re = parseInt(a) - 1;
+  
+   
+   
+
+    if(a<=1){
+        alert("数量不能小于1");
+        return;
+    }else if( re > maxnum){
+        //是否大于库存
+        $(this).parent().find(".cart_cate").val(re);
+        return;
+    }
+    else{
+
+        $(this).parent().find(".cart_cate").val(re);
+
+        $(this).parent().find(".cart_cate").removeClass("type_num_error");
+        $(this).parent().find(".cart_cate").addClass("type_num");
+
+        var checked =$(this).parent().parent().siblings().children().children(".cart_ids");
+
+        var checked_num = $(this).parent().parent().children().children('.cart_cate');
+        var quantity  =getSelectNum(checked,checked_num);
+        
+         
+        $(this).parent().parent().siblings().children('.quantity_tol').html(quantity);
+
+        var price = $(this).parent().parent().parent().find('.price_one').html();
+
+        var allprice =quantity*price;
+        var allprice_html = "<span>"+allprice+"</span>"
+        $(this).parent().parent().parent().find('.price_tol').html(allprice_html);
+    }
+})
+$(".button_asc").click(function(){
+    // 判断 库存 
+    
+    var maxinput =$(this).parent().children('input');
+    var maxnum  =maxinput['0']['max'];
+
+    var a = $(this).parent().find(".cart_cate").val();
+    if(a >=maxnum){
+      alert("数量已达库存上限");
+      return;
+    }
+    var re =parseInt(a) + 1;
+
+    $(this).parent().find(".cart_cate").removeClass("type_num_error");
+    $(this).parent().find(".cart_cate").addClass("type_num");
+
+
+    $(this).parent().find(".cart_cate").val(re);
+    var checked =$(this).parent().parent().siblings().children().children(".cart_ids");
+
+    var checked_num = $(this).parent().parent().children().children('.cart_cate');
+    var quantity  =getSelectNum(checked,checked_num);
+    
+     
+    $(this).parent().parent().siblings().children('.quantity_tol').html(quantity);
+
+    var price = $(this).parent().parent().parent().find('.price_one').html();
+
+    var allprice =quantity*price;
+    var allprice_html = "<span>"+allprice+"</span>"
+    $(this).parent().parent().parent().find('.price_tol').html(allprice_html);
+  
+})
+
+
+</script>
+{/block}

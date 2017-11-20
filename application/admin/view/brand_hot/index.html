@@ -1,0 +1,130 @@
+{extend name="public/base"/}
+{block name="style"}
+<script src="__PUBLIC__/js/jquery-ui.custom.min.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<style type="text/css">
+
+#main{
+    margin: 100px 300px;
+}
+#main .bd {
+    text-align: center;
+    border: solid 1px #333539;
+    height: 40px;
+    width: 160px;
+}
+#main .show {
+    padding-top:10px;
+}
+</style>
+{/block}
+{block name="body"}
+<div class="main-box no-header clearfix">
+    <header class="main-box-header clearfix">
+        <!-- 标题栏 -->
+        <div class="pull-left">
+            <h2>{$meta_title}</h2>
+        </div>
+    </header>
+    <div class="" >
+        <button id="addbtn" class="btn  btn-success" style="margin-left: 120px;" target-form="ids" url="">添加</button>
+        <button id="deletebtn" class="btn  btn-success" style="margin-left: 150px;" target-form="ids" url="" >删除</button>
+        <button id="btn" class="btn " style="margin-left: 150px;" target-form="ids" url="" >确定</button>
+    </div>
+
+    <div class="main-box-body " >
+        <!-- 数据列表 -->
+        <table id="main"   >
+            <thead>
+                <tr >
+                    <th class="show"></th>
+                    <th class="bd" style="background-color:#ddd">品牌名称</th>
+                </tr>
+            </thead>
+            <tbody>
+            {volist name="list" id="vo"}
+                <tr>
+                    <th class="show"><input type="checkbox" style="display:none;" name="chck" value="{$vo.hot_brand_id}" /></th>
+                    <th class="bd">{$vo.name}</th>
+                </tr>
+            {/volist}
+               <tr>
+                   <th></th>
+                   <th class="bd" id="bname" style="display: none" ><input type="text" style="border:0;"  name="code" value=""/></th>
+               </tr>
+            </tbody>
+        </table>
+        <!-- 分页 -->
+
+        <!-- /分页 -->
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script type="text/javascript">
+    $(function () {
+        $("#addbtn").on('click',function () {
+            $(this).addClass('btn-success');
+            $("#deletebtn").removeClass('btn-success');
+            $("#btn").addClass('btn-success');
+            $(".show input").hide();
+            $("#bname").show();
+        });
+        $("#deletebtn").on('click',function () {
+            $(this).addClass('btn-success');
+            $("#addbtn").removeClass('btn-success');
+            $("#btn").addClass('btn-success');
+            $(".show input").show();
+            $("#bname").hide();
+        });
+        $("#btn").on('click',function () {
+            var bid = [];
+            var brand_id = [];
+            $(".show input:checked").each(function () {
+                bid.push($(this).val());
+            });
+
+            if(bid[0]){
+                var answer = confirm('确定删推荐商品吗？');
+                if(answer){
+                    var cur_url = "{:url('admin/brand_hot/delete')}";
+                    window.location.href =cur_url+"?brand_ids="+bid;
+                }
+
+            }
+            $(".hot_brand").each(function () {
+                brand_id.push($(this).val())
+            });
+            if(brand_id[0]){
+                var answer = confirm('确定添加该荐商品吗？');
+                if(answer){
+                    var cur_url = "{:url('admin/brand_hot/add')}";
+                    window.location.href =cur_url+"?brand_ids="+brand_id;
+                }
+            }
+
+
+        })
+    });
+    $('input[name="code"]').autocomplete({
+        'source': function (request, response) {
+            $.ajax({
+                url: '{:url("admin/brand_hot/search")}?filter_name=' + encodeURIComponent(request.term),
+                dataType: 'json',
+                success: function (json) {
+                    response($.map(json, function (item) {
+                        return {
+                            value: item['name'],
+                            new_brand_id: item['brand_id']
+                    }
+                    }));
+                }
+            });
+        },
+        'select': function (event, ui) {
+            $('#bname').append('<input type="hidden" class="hot_brand" name="hot_brand" value='+ui.item.new_brand_id+'>');
+        }
+    });
+</script>
+{/block}

@@ -1,0 +1,45 @@
+{extend name="public/base"/}
+{block name="body"}
+<div class="main-box clearfix">
+	<header class="main-box-header clearfix">
+		<div class="pull-left">
+			<h2>
+			{$meta_title}
+			</h2>
+		</div>
+		<div class="pull-right">
+			<a class="btn btn-success submit-btn no-refresh" target-form="form-horizontal"  href="{:url('add')}">添加折扣规则</a>
+		</div>
+	</header>
+	<div class="main-box-body clearfix">
+		<div class="main-box-body clearfix">
+			<div class="table-responsive clearfix">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th>供应商</th>
+							<th>季节</th>
+							<th>进价折扣</th>
+							<th>生效时间</th>
+						</tr>
+					</thead>
+					<tbody>
+						{volist name="list" id="sdr"}
+						<tr>
+							<td>{$sdr.vendor.name}</td>
+							<td>{$sdr.season.name}</td>
+							<td>{$sdr.discount}</td>
+							<td>{$sdr.from_time}</td>
+						</tr>
+						{/volist}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	<div class="clearfix"></div>
+	<!-- 分页 -->
+	{$page}
+	<!-- /分页 -->
+</div>
+{/block}

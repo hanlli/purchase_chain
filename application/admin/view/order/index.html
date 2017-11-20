@@ -1,0 +1,93 @@
+{extend name="public/base"/}
+{block name="style"}
+{/block}
+{block name="body"}
+<div>订单管理【管理员 销售部】</div>
+<div>
+	<p>（订单筛选条件）</p>
+	<div class="order_select">
+		<p class=""><span>采购方：</span><input type="text"></p>
+		<p class=""><span>订单号：</span><input type="text"></p>
+		<p class=""><span>订单状态：</span><select></select></p>
+		<p class=""><span>下单日期：</span><input style="height: 26px;box-shadow: none;border: 1px solid #aaa;border-radius: 0;" id="sel_order_date" type="text" class="form-control" name="from_time" size="15" value="">
+		<p class=""><span>有无退货单：</span><input type="text"></p>
+	</div>
+
+	<table border="1" class="table table-hover">
+
+		<thead>
+			<tr>
+				<td>采购方</td>
+				<td>订单号</td>
+				<td>商品数量</td>
+				<td>合计金额</td>
+				<td>订单状态</td>
+				<td>备注</td>
+				<td>收款账号</td>
+				<td>收款金额</td>
+				<td>操作</td>
+				<td>下单日期</td>
+				<td>有退货订单</td>
+				<td></td>
+				<td></td>
+			</tr>
+		</thead>
+
+		<tbody >
+			{volist name="list" id="buyer" key="k"}
+				<tr>
+					<td rowspan="{$real_list_rowspan[$k]['rowspan']}">{$real_list_rowspan[$k]['customer_name']}</td>
+				</tr>
+				{volist name="buyer" id="od"}
+					<tr>
+						<td>{$od[0]->order_id}</td>
+						<td>{$od[0]->total_num}</td>
+						<td>{$od[0]->total}</td>
+						<td>{$od[0]->order_status}<select name="" id=""></select></td>
+						<td>{$od[0]->comment}</td>
+						<td><input type="text" name="reciever_account"></td>
+						<td><input type="text" name="recieved_amount"></td>
+						<td><button>确定</button></td>
+						<td>{$od[0]->date_added}</td>
+						<td>{present name="$od[1]"}●{/present}</td>
+						<td rowspan="{$od|count}"><a href="{:url('admin/order/detail', ['order_id'=>$od[0]->order_id])}">【订单详情按钮】</a></td>
+						<td><a href="{:url('admin/order/history', ['order_id'=>$od[0]->order_id])}">查看修改记录</a></td>
+					</tr>
+					{volist name="od" id="rfd" offset="1"}
+					<tr>
+						<td>{$rfd->refund_id}</td>
+						<td>{$rfd->total_num}</td>
+						<td>{$rfd->total}</td>
+						<td>{$rfd->refund_status}<select name="" id=""></select></td>
+						<td>{$rfd->comment}</td>
+						<td><input type="text" name="reciever_account"></td>
+						<td><input type="text" name="recieved_amount"></td>
+						<td><button>确定</button></td>
+						<td>{$rfd->date_added}</td>
+						<td></td>
+						<td><a href="{:url('admin/order/history', ['order_id'=>$od[0]->order_id])}">查看修改记录</a></td>
+					</tr>
+					{/volist}
+				{/volist}
+			{/volist}			
+		</tbody>
+
+	</table>
+	<div class="clearfix"></div>
+  <!-- 分页 -->
+  {$page}
+  <!-- /分页 -->
+</div>
+{/block}
+{block name="script"}
+<script type="text/javascript">
+
+	$('#sel_order_date').fdatepicker({
+	  format: 'yyyy-mm-dd hh:ii:ss',
+	  pickTime: true,
+	  todayHighlight: true,
+	  todayBtn: true
+	});
+
+</script>
+{/block}

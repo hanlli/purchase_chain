@@ -1,0 +1,143 @@
+{extend name="public/base"/}
+{block name="body"}
+<div class="main-box clearfix">
+    <header class="main-box-header clearfix">
+        <div class="pull-left">
+            <h2>
+                {$meta_title}
+            </h2>
+        </div>
+    </header>
+    <div class="main-box-body" style="height:300px;" >
+        <form method="post" action="edit" class="form form-horizontal" style="margin:0 20% 0 20%;"  >
+            <div class="form-group" >
+                <label class="col-lg-2 control-label">当前销售系数:</label>
+                <label class="col-lg-1 control-label">{$cur_factor|number_format=2}</label>
+            </div>
+            {volist name="data" id="sale"}
+            <div class="form-group" >
+                <label class="col-lg-2 control-label">销售系数设置:</label>
+                <div class="col-lg-5">
+                    <input style="" type="number" class="form-control" onblur="tip(this)" name="factor" value="{$sale.factor|number_format=2}">
+                    <div></div>
+                    <span class="hidden text-danger"></span>
+                </div>
+            </div>
+            <!-- <div class="form-group">
+                <label class="col-lg-6 control-label">若改变销售系数必须填写生效时间</label>
+            </div> -->
+
+            <div class="form-group">
+                <label class="col-lg-2 control-label">生效起始时间:</label>
+                <div class="col-lg-5">
+                    <input id="sales_factor_date" type="text" class="form-control" name="from_time" disabled="disabled" size="15" value="{$sale.from_time}">
+                    <div></div>
+                    <span class="hidden text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                 <label class="col-lg-6 control-label">时间格式：YYYY-MM-DD H:M:S</label>
+            </div>
+            {/volist}
+            <button class="btn btn-success " id="saveSalesFactor" style="margin-left:25%;width: 100px" type="button" target-form="form-horizontal" disabled="disabled">确定</button>
+        </form>
+
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script type="text/javascript" src="__PUBLIC__/js/bootstrap-editable.min.js"></script>
+<script type="text/javascript">
+    //输入框失焦事件
+    function tip(self){
+        $(function () {
+            var v = $(self).val();
+            if(parseFloat(v) == parseFloat($(self).attr('value'))) {
+                return;
+            }
+            //是否满足小数点后两位需求
+            if(!$.isNumeric(v)) {
+                $(self).siblings('span').text("请输入大约等于1的数字").removeClass('hidden');
+                return;
+            }
+            v = new Number(v);
+            if(v<1) {
+                $(self).siblings('span').text("请输入大约等于1的数字").removeClass('hidden');
+                return;   
+            }
+            $(self).val(v.toFixed(2));
+            $(self).siblings('span').addClass('hidden');
+            $('#sales_factor_date').removeAttr('disabled');
+            $('#saveSalesFactor').removeAttr('disabled');
+        })
+    }
+
+    function isDate(val) {
+        var d = new Date(val);
+        return !isNaN(d.valueOf());
+    }
+    //确认按钮保存系数
+    $('#saveSalesFactor').click(
+        function() {
+        var that = this;
+        //检查每一个折扣数值是否属于(0,10]
+        $('input[name^="factor"]').each(
+            function(idx, elem) {
+                var v = $(elem).val();
+                if(!$.isNumeric(v)) {
+                $(elem).siblings('span').text("请输入大约等于1的数字").removeClass('hidden');
+                    return;
+                }
+                v = new Number(v);
+                if(v<1) {
+                    $(elem).siblings('span').text("请输入大约等于1的数字").removeClass('hidden');
+                    return;   
+                }
+            }
+        );
+        if($('input[name^="factor"]').siblings('span').not('.hidden').length>0) {
+            return;
+        }
+        //检查选择的时间是否大于当前时间
+        if(!isDate($('#sales_factor_date').val())) {
+            $('#sales_factor_date').siblings('span').text("请输入有效时间").removeClass('hidden');
+            return;   
+        }
+        if((new Date()).getTime() >= (new Date($('#sales_factor_date').val())).getTime()) {
+            $('#sales_factor_date').siblings('span').text("需大于当前时间").removeClass('hidden');
+            return;
+        }
+        $('#sales_factor_date').siblings('span').addClass('hidden');
+        //发起保存请求
+        var query = $('form').serialize();
+        var target = "{:url('edit')}";
+        $.post(target, query).success(function(data) {
+          if (data.code == 1) {
+            //成功返回
+            var ret_data = data.data;
+            updateAlert(data.msg + ' 页面即将自动刷新~', 'success');
+            setTimeout(function() {
+              $(that).removeClass('disabled').prop('disabled', false);
+              location.reload();
+            }, 500);
+          } else {
+            updateAlert(data.msg, 'danger');
+            // var ret_data = data.data, msg;
+            setTimeout(function() {
+              $(that).removeClass('disabled').prop('disabled', false);
+            }, 500);
+          }
+        });
+    }); 
+
+    $('#sales_factor_date').fdatepicker({
+      format: 'yyyy-mm-dd hh:ii:ss',
+      pickTime: true,
+      todayHighlight: true,
+      todayBtn: true
+    });
+</script>
+{/block}
+
+

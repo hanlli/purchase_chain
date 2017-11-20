@@ -1,0 +1,334 @@
+{extend name="public/base"/}
+{block name="body"}
+
+<div class="main-box no-header clearfix">
+	<header class="main-box-header clearfix">
+		<!-- <div class="pull-left">
+			<h2>{$meta_title}</h2>
+		</div> -->
+		<div class="pull-left">
+			<button class="btn btn_add btn-primary pull-left_user" target-form="ids" >添加</button>
+			<button class="btn btn_edit  btn-primary pull-left_user" target-form="ids" >修改</button>
+			<button class="btn btn_delete btn-primary pull-left_user" target-form="ids" >删除</button>
+			<button class="btn btn_makesure1 disabled pull-left_user" target-form="ids" >确定</button>
+			<button class="btn btn_makesure2 tabbl_checkbox pull-left_user" target-form="ids" >确定</button>
+			<button class="btn btn_makesure3 tabbl_checkbox pull-left_user" target-form="ids" >确定</button>
+		</div>
+			
+		<!-- <div >
+			<a href="{:url('add')}" class="btn btn-primary pull-right"> <i class="fa fa-plus-circle fa-lg"></i> 新增用户</a>
+		</div> -->
+	</header>
+
+	<div class="main-box-body clearfix">
+		<div class="table-responsive">
+			<table class="table user-list table-hover">
+				<thead>
+					<tr>
+						<th class="table_tbody boder_top tabbl_checkbox ">
+                        	<input class="check-all" type="checkbox">
+                    	</th>
+						<th class="table_tbody boder_top">
+							<span>会员ID</span>
+						</th>
+						<th class="table_tbody boder_top">
+							<span>权限</span>
+						</th>
+						<th class="table_tbody boder_top">
+							<span>公司名称</span>
+						</th>
+						<th class="table_tbody boder_top">
+							<span>公司地址</span>
+						</th>
+						<th class="table_tbody boder_top">
+							<span>对接人</span>
+						</th>
+						<th class="table_tbody boder_top">
+							<span>对接人联系方式</span>
+						</th>
+						<th class="table_tbody boder_top">
+							<span>用户名</span>
+						</th>
+						<th class="table_tbody boder_top">
+							<span>密码设置</span>
+						</th>
+						<th class="table_tbody boder_top">
+							<span>开拓渠道</span>
+						</th>
+						<th class="table_tbody boder_top">
+							<span>业务员</span>
+						</th>
+						
+						
+					</tr>
+				</thead>
+				<tbody  id="tbody">
+					{volist name="list" id="item"}
+					<tr id="uid{$item['uid']}">
+						<td class="table_tbody tabbl_checkbox">
+							<input  name="member_uid" class="ids"  value="{$item['uid']}" type="checkbox">
+						</td>
+						<td class="table_tbody">
+							<input class="input_text_read" disabled="disabled" value="{$item['uid']}" >
+						</td>
+						<td class="table_tbody">
+							<select name="group_id">
+								{volist name="auth" id="oauth"}
+								{eq name="$item['group_id']" value="$oauth['id']"}
+									<option class="input_text_read update" disabled="disabled" value="{$oauth['id']}" selected = "selected" >{$oauth['title']}</option>
+								{else/}
+									<option class="input_text_read update" disabled="disabled" value="{$oauth['id']}">{$oauth['title']}</option>
+								{/eq}
+							
+								{/volist}
+								
+							</select>
+						</td>
+						<td class="table_tbody">
+							<input name="company_name" class="input_text_read update" disabled="disabled" value="{$item['company_name']}" >
+						</td>
+						<td class="table_tbody">
+							<input name="company_address" class="input_text_read update" disabled="disabled" value="{$item['company_address']}" >
+						</td>
+						<td class="table_tbody">
+							<input name="contact_name" class="input_text_read update" disabled="disabled" value="{$item['contact_name']}" >
+						</td>
+						<td class="table_tbody">
+							<input name="contact_phone" class="input_text_read update" disabled="disabled" value="{$item['contact_phone']}" >
+						</td>
+						<td class="table_tbody">
+							<input name="username" class="input_text_read " disabled="disabled" value="{$item['username']}" >
+						</td>
+						<td class="table_tbody">
+							<span class="salt" style="display:none;">{$item['salt']}</span>
+
+							<button name="password"  class="btn_rest btn-primary btn" value="{$item['password']}" >重置</button>
+						</td>
+						<td class="table_tbody">
+							<input name="channel" class="input_text_read update" disabled="disabled" value="{$item['channel']}" >
+						</td>
+						<td class="table_tbody">
+							<input name="sales_name" class="input_text_read update" disabled="disabled" value="{$item['sales_name']}" >
+						</td>
+					
+					
+						
+						
+					</tr>
+					{/volist}
+				</tbody>
+			</table>
+			{$page}
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+$(function(){
+	var auth =<?php echo json_encode($auth,true); ?>;
+	var option ;
+	auth.forEach(function(elem){
+		if(elem.id == '1'){
+			option="<option selected=selected value="+elem.id+">"+elem.title+"</option>"+option;
+		}else{
+			option="<option value="+elem.id+">"+elem.title+"</option>"+option;
+		}
+		
+	});
+	
+
+	function change(){
+		$(this).change(function(){
+			var value = $(this).val();
+			console.log("1111");
+			return  value;
+		})
+	}
+	var num =0;
+	var users =new Array();
+	var usernum =new Array();
+	$(".btn_add").click(function() {
+		// body...
+		$(".btn_edit").removeClass("btn-primary");
+		$(".btn_delete").removeClass("btn-primary");
+		$(".btn_edit").addClass("disabled");
+		$(".btn_delete").addClass("disabled");
+		$(".btn_makesure1").removeClass("disabled");
+		$(".btn_makesure1").addClass('btn-primary');
+		num++;
+
+		usernum.push(num);
+		var sele = "<select name=\"group_id\">"+option+"</select>";
+		$("#tbody").after("<tr id=form"+num+"><td class=\"table_tbody2 tabbl_checkbox\"><input class=\"check-all\" type=\"checkbox\"></td><td class=\"table_tbody2\"><span></span></td><td class=\"table_tbody2\">"+sele+"</td><td class=\"table_tbody2\"><input name=\"company_name\" type=\"text\" class=\"input_text\"></td><td class=\"table_tbody2\"><input type=\"text\" name=\"company_address\" class=\"input_text\"></td><td class=\"table_tbody2\"><input name=\"contact_name\" type=\"text\" class=\"input_text\"></td><td class=\"table_tbody2\"><input type=\"text\" name=\"contact_phone\" class=\"input_text\"></td><td class=\"table_tbody2\"><input name=\"username\" type=\"text\" class=\"input_text\"></td><td class=\"table_tbody2\"><input name=\"password\" type=\"text\" class=\"input_text\"></td><td class=\"table_tbody2\"><input name=\"channel\"  type=\"text\" class=\"input_text\"></td><td class=\"table_tbody2\"><input name=\"sales_name\"  type=\"text\" class=\"input_text\"></td></tr>");
+		
+	})
+	
+	$(".btn_edit").click(function() {
+		// body...
+		$(".btn_add").removeClass("btn-primary");
+		$(".btn_delete").removeClass("btn-primary");
+		$(".btn_add").addClass("disabled");
+		$(".btn_delete").addClass("disabled");
+		$(".btn_makesure1").removeClass("disabled");
+		$(".btn_makesure1").addClass('btn-primar tabbl_checkbox');
+
+		$(".btn_makesure2").removeClass("tabbl_checkbox");
+		$(".btn_makesure2").addClass("btn-primary");
+		$(".update").removeAttr("disabled");
+	})
+
+	$(".btn_delete").click(function() {
+		// body...
+		$(".btn_edit").removeClass("btn-primary");
+		$(".btn_add").removeClass("btn-primary");
+		$(".btn_edit").addClass("disabled");
+		$(".btn_add").addClass("disabled");
+		$(".btn_makesure1").removeClass("disabled");
+		$(".btn_makesure1").addClass('btn-primary tabbl_checkbox');
+
+		$(".btn_makesure3").removeClass("tabbl_checkbox");
+		$(".btn_makesure3").addClass("btn-primary");
+
+		$("table th").removeClass("tabbl_checkbox");
+		$("table td").removeClass("tabbl_checkbox");
+	})
+	$(".btn_makesure1").click(function() {
+		// body...
+		//新增 的功能
+		target="{:url('admin/user/addUser')}";
+		usernum.forEach(function(item){
+			var  data ={} ;	
+		 	data.group_id 		=	$("#form"+item+" select[name=\"group_id\"]").val();
+	        data.company_name	=	$("#form"+item+" input[name=\"company_name\"]").val();
+	        data.company_address=	$("#form"+item+" input[name=\"company_address\"]").val();
+	        data.contact_name	=	$("#form"+item+" input[name=\"contact_name\"]").val();
+	        data.contact_phone	=	$("#form"+item+" input[name=\"contact_phone\"]").val();
+	        data.username		=	$("#form"+item+" input[name=\"username\"]").val();
+	        data.password		=	$("#form"+item+" input[name=\"password\"]").val();
+	        data.channel		=	$("#form"+item+" input[name=\"channel\"]").val();
+	        data.sales_name		=	$("#form"+item+" input[name=\"sales_name\"]").val();	   		
+	        users.push(data);
+		});
+		$.ajax({
+			url: target,
+			type:'post',
+			dataType: 'json',
+			data:{'users':users},
+			beforeSend: function() {
+				
+			},
+			complete: function() {
+				
+			},
+			success: function(json) {
+				users = [];
+				location.reload();
+				
+			},
+			error: function(xhr, ajaxOptions, thrownError) {
+				users = [];
+				alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+			}
+		});
+        
+      
+        
+	})
+	//编辑 的功能
+	$(".btn_makesure2").click(function() {
+		var alluser =[];
+		var list =<?php echo json_encode($list,true); ?>;
+		list.data.forEach(function(item){
+			var  data ={} ;	
+		 	data.group_id 		=	$("#uid"+item.uid+" option:selected").val();
+		 	data.uid 			=	item.uid;
+	        data.company_name	=	$("#uid"+item.uid+" input[name=\"company_name\"]").val();
+	        data.company_address=	$("#uid"+item.uid+" input[name=\"company_address\"]").val();
+	        data.contact_name	=	$("#uid"+item.uid+" input[name=\"contact_name\"]").val();
+	        data.contact_phone	=	$("#uid"+item.uid+" input[name=\"contact_phone\"]").val();
+	        data.salt			=	$("#uid"+item.uid+" span").html();
+	        data.channel		=	$("#uid"+item.uid+" input[name=\"channel\"]").val();
+	      
+	        if($("#uid"+item.uid+" button").hasClass('reset_pass')){
+	        	data.password		=	'123456';//密码重置与否
+	        }else{
+	        	data.password		=	$("#uid"+item.uid+" button[name=\"password\"]").val();
+	        }
+	        data.sales_name		=	$("#uid"+item.uid+" input[name=\"sales_name\"]").val();	   		
+	        alluser.push(data);
+		});
+		
+		target="{:url('admin/user/editUsers')}";
+		$.ajax({
+			url: target,
+			type:'post',
+			dataType: 'json',
+			data:{'users':alluser},
+			beforeSend: function() {
+				
+			},
+			complete: function() {
+				
+			},
+			success: function(json) {
+				users = [];
+				location.reload();
+				
+			},
+			error: function(xhr, ajaxOptions, thrownError) {
+				users = [];
+				alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+			}
+		});
+	});
+	
+	//编辑 的功能
+	$(".btn_makesure3").click(function() {
+		var a =confirm("确认删除？");
+		if(a==false){
+			return;
+		}
+		var delusers =[];
+		$('input[name="member_uid"]:checked').each(function(){    
+   			delusers.push($(this).val());    
+  		});    
+		
+		if(delusers.length == 0){
+			alert('你还没有选择任何内容！');
+			return;
+		}
+	
+		target="{:url('admin/user/delteUsers')}";
+		$.ajax({
+			url: target,
+			type:'post',
+			dataType: 'json',
+			data:{'users':delusers},
+			beforeSend: function() {
+				
+			},
+			complete: function() {
+				
+			},
+			success: function(json) {
+				users = [];
+				location.reload();
+				
+			},
+			error: function(xhr, ajaxOptions, thrownError) {
+				users = [];
+				alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+			}
+		});
+	});
+	
+	$(".btn_rest").click(function(){
+		$(this).html("已重置");
+		$(this).addClass("reset_pass");
+	});
+	
+
+});
+
+</script>	
+{/block} 
+

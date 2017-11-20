@@ -1,0 +1,733 @@
+{extend name="public/base"/}
+{block name="body"}
+<button id="returnTop"><div style="font-size: 16px;">∧</div><div style="font-size: 12px;">TOP</div></button>
+<div class="main-box no-header clearfix">
+  <header class="main-box-header clearfix">
+    <!-- 标题栏 -->
+    <div class="pull-left">
+      <h2>{$meta_title}</h2>
+    </div>
+    <div class="pull-right">
+      <button class="btn btn-success submit-btn no-refresh" target-form="form-horizontal" id="cart_add" url="{:url('admin/cart/add')}">添加进货单</button>
+      <a class="btn btn-warning" id="cart_view" href="{:url('admin/cart/index')}">查看进货单</a>
+    </div>
+    <div class="pull-right" style="margin-right: 30px;">
+      <h2>
+        <span>合计: </span><span id="items_count">{$items_count}</span><span>件</span>
+        <span>合计金额: </span><span id="items_total">{$items_total}</span>
+      </h2>
+    </div>
+  </header>
+  <div class="main-box-body clearfix">
+    <div class="row">
+     <div class="col-xs-12">
+      <div class="well">
+       <div class="row">
+        <div class="col-xs-12">
+        <div class="tag pinlei to-select all {present name='selected_filters.all'}chosen{/present}" data-value="all">全部商品</div>
+        <div class="pinlei tag to-select rec {present name='selected_filters.rec'}chosen{/present}" data-value="rec">推荐商品</div>
+        </div>
+       </div>
+       <div class="row">
+        <label for="">品牌: </label>
+        <div class="tag multi_btn">+多选</div>
+        
+          {volist name="brands" id="brd_selected"}
+          <div data-value="{$key}" data-brand-id="{$key}" data-initial="{$brands_idx[$key]}" class="trademark_selected tag chosen hide">{$brd_selected}</div>
+          {/volist}
+        <div class="cat_action_btnbox hide">
+          <!-- <button class="btn btn-success" id="submin_multi">确认</button> -->
+          <button class="btn btn-warning" id="cancel_multi">取消</button>
+        </div>
+
+       </div>
+       <div class="clearfix"></div>
+        <!-- 分页 -->
+        <div style="float: right;">
+          {$page}
+        </div>
+       <div class="clearfix"></div>
+        <!-- /分页 -->
+       <div class="row">
+        <div class="col-xs-12 brand-index">
+         <a class="pinlei first_letter to-select hot {present name='selected_filters.hot'}chosen{/present}" data-value="hot" data-initial='0' >热销品牌</a>
+         {php}
+         foreach (range('A', 'Z') as $char) {
+            echo '<a href="javascript:void()" class="first_letter" data-initial='.$char.'>'.$char.'</a>';
+         }
+         {/php}
+         <a href="javascript:void()" class="first_letter" data-initial="-1">其他</a>
+
+        </div>
+
+
+        <div class="col-xs-12 brand">
+         <ul>
+            {volist name="brands" id="brd"}
+            <li data-value="{$key}" data-brand-id="{$key}" data-initial="{$brands_idx[$key]}" class="trademark_item to-select brand-sel {present name='selected_filters.brand_id'}{in name='$key' value='$selected_filters.brand_id'}chosen{/in}{/present}">{$brd}</li>
+            {/volist}
+         </ul>
+        </div>
+       </div>
+       <!-- 品类 -->
+       <div class="row">
+        <label for="">品类: </label>
+        <div class="tag tag_pinlei">+多选</div>
+        {volist name="parent_categories" id="pcat"}
+        <div class="pinlei tag to-select pcat-sel {present name='selected_filters.parent_category_id'}{in name='$key' value='$selected_filters.parent_category_id'}chosen{/in}{/present}" data-value="{$key}">{$pcat}</div>
+        {/volist}
+       </div>
+       <!-- 性别 -->
+       <div class="row">
+        <label for="">性别: </label>
+        <div class="tag tag_xingbie">+多选</div>
+        {volist name="goods_types" id="gt"}
+        <div class="xingbie tag to-select gt-sel {present name='selected_filters.goods_type_id'}{in name='$key' value='$selected_filters.goods_type_id'}chosen{/in}{/present}" data-value="{$key}">{$gt}</div>
+        {/volist}
+       </div>
+       <!-- 季节 -->
+       <div class="row">
+        <label for="">季节: </label>
+        <div class="tag tag_jijie">+多选</div>
+        {volist name="seasons" id="ss"}
+        <div class="jijie tag to-select ss-sel {present name='selected_filters.season_id'}{in name='$key' value='$selected_filters.season_id'}chosen{/in}{/present}" data-value="{$key}">{$ss}</div>
+        {/volist}
+       </div>
+       <!-- 折扣 -->
+       <div class="row">
+        <label for="">折扣: </label>
+        <div class="tag tag_zhekou">+多选</div>
+        {volist name="discounts" id="dsct"}
+        <div class="zhekou tag to-select dsct-sel {present name='selected_filters.discount'}{in name='$key' value='$selected_filters.discount'}chosen{/in}{/present}" data-value="{$key}">{$dsct}</div>
+        {/volist}
+       </div>
+       <div class="row form-inline">
+        <label for="">款号: </label>
+        <input type="text" class="form-control" name="code" value="{present name='selected_filters.code'}{$selected_filters.code}{/present}">
+        <label style="margin-left:100px;">价格: </label>
+        <input type="text" style="width:50px;" class="form-control" name="start_price" value="{present name='selected_filters.start_price'}{$selected_filters.start_price}{/present}">
+        <label for=""> - </label>
+        <input type="text" style="width:50px;" class="form-control" name="end_price" value="{present name='selected_filters.end_price'}{$selected_filters.end_price}{/present}">
+        <label style="margin-left:100px;">排序: </label>
+        <select name="sort" class="form-control" id="">
+         <option value=""></option>
+         <option value="date_added-desc" {present name='selected_filters.sort'}{eq name='selected_filters.sort' value='date_added-desc'}selected="selected"{/eq}{/present}>新品</option>
+         <option value="price-asc" {present name='selected_filters.sort'}{eq name='selected_filters.sort' value='price-asc'}selected="selected"{/eq}{/present}>价格由低到高</option>
+         <option value="price-desc" {present name='selected_filters.sort'}{eq name='selected_filters.sort' value='price-desc'}selected="selected"{/eq}{/present}>价格由高到低</option>
+        </select>
+        <button class="btn btn-success" id="search">确定</button>
+        <button class="btn btn-warning" id="cancel">清除</button>
+       </div>
+      </div>
+     </div>
+    </div>
+
+    <!-- 排列方式 -->
+    <div class="mb_20">
+      <span>排列方式：</span>
+      <button class="liebiao">列表</button>
+      <button class="wangge">网格</button>
+    </div>
+    
+    <div class="clearfix"></div>
+
+    <!-- 数据列表 -->
+    <div class="shujuliebiao products products_list">
+      <div class="products_head">
+        <ul class="productlist_head">
+          <!-- <li class="row-selected row-selected">
+            <input class="check-all" type="checkbox"/>
+          </li> -->
+          <!-- <li>商品ID</li> -->
+          <li style="width: 30%;">商品名称</li>
+          <li style="width: 10%;">商品款号</li>
+          <li style="width: 10%;">市场价</li>
+          <li style="width: 10%;">折扣</li>
+          <li style="width: 10%;">采购价</li>
+          <li style="width: 8%;">尺码</li>
+          <li style="width: 8%;">数量</li>
+          <li style="width: 8%;">采购数量</li>
+        </ul>
+      </div>
+      <div class="clearfix"></div>
+      <div class="products_body">
+        {volist name="list" id="vo"}
+          <div class="products_item listitem">
+            <!-- <div class="products_item_checkbox">
+              <input class="ids" type="checkbox" name="id[]" value="{$vo['pproduct_id']}" />
+            </div>
+            <div class="ft12 products_item_id">{$vo.pproduct_id}</div> -->
+            <div class="products_item_img img-thumbnail-box">
+              <button class="product_pop_btn" type="button" data-toggle="modal" data-pproduct_id="{$vo.pproduct_id}"><img data-original="{$vo.image}" class="img-thumbnail lazy" ></button>              
+              <img class="bigimg_p hide" src="{$vo.image}" class="img-thumbnail" >
+            </div>
+            <div class="div-attribute div-attribute_thumb">
+              <div>【品牌】{$vo.brand}</div>
+              <div>【款号】{$vo.code}</div>
+              <div>【市场价】{$vo.price}&nbsp;&nbsp;【折扣】{$vo.discount}&nbsp;&nbsp;【采购价】{$vo.msrp}</div>
+              <!-- <div>【名称】{$vo.chs_name}</div>
+              <div>【品类】{$vo.category}</div>
+              <div>【季节】{$vo.season}</div>
+              <div>【性别】{$vo.goods_type}</div>
+              <div>{$vo.code}</div>
+              <div>{$vo.msrp}</div>
+              <div>{$vo.discount}</div>
+              <div>{$vo.price}</div> -->
+              <div>【加入进货单】</div>
+            </div>
+            <div class="div-attribute thumb_hide_list div-attribute_list1">
+              <div>【名称】{$vo.chs_name}</div>
+              <div>【品牌】{$vo.brand}</div>
+              <!-- <div>【款号】{$vo.code}</div> -->
+              <div>【品类】{$vo.category}</div>
+              <div>【季节】{$vo.season}</div>
+              <!-- <div>【性别】{$vo.goods_type}</div> -->
+            </div>
+              <div class="thumb_hide_list div-attribute_list2">{$vo.code}</div>
+              <div class="thumb_hide_list div-attribute_list3">{$vo.msrp}</div>
+              <div class="thumb_hide_list div-attribute_list4">{$vo.discount}</div>
+              <div class="thumb_hide_list div-attribute_list5">{$vo.price}</div>
+            <div class="div-size thumb_sizebox div-attribute_list6">
+              {volist name="$vo.product" id="prd"}
+                {gt name="prd.stock" value="0"}
+                <div class="prd-size" style="padding: 2px 5px;">
+                  {$prd.size}
+                </div>
+                {/gt}
+              {/volist}
+            </div>
+            <div class="div-size thumb_sizebox div-attribute_list7">
+              {volist name="$vo.product" id="prd"}
+                {gt name="prd.stock" value="0"}
+                <div class="prd-size" style="padding: 2px 5px;">
+                  {present name="$cart_items[$prd.product_id]"}
+                    {$prd.stock-$cart_items[$prd.product_id]}
+                  {else /}
+                    {$prd.stock}
+                  {/present}
+                </div>
+                {/gt}
+              {/volist}
+            </div>
+            <div class="thumb_sizebox div-attribute_list8">
+              {volist name="$vo.product" id="prd"}
+                {gt name="prd.stock" value="0"}
+                <div class="buy-num-wrapper">
+                  {present name="$cart_items[$prd.product_id]"}
+                    <input type="number" name="{$cart_input_name}[{$prd.product_id}]" max="{$prd.stock-$cart_items[$prd.product_id]}" min="1" class="buy-num"/>
+                  {else /}
+                    <input type="number" name="{$cart_input_name}[{$prd.product_id}]" max="{$prd.stock}" min="1" class="buy-num"/>
+                  {/present}
+                </div>
+                {/gt}
+              {/volist}
+            </div>
+          </div>
+          <div class="clearfix list_clearfix"></div>
+        {/volist}
+      </div>
+    </div>
+
+    <!-- 弹出框 -->
+    <div id="product_popup" class="modal fade in" tabindex="-1" role="dialog" aria-labelledby="gridModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content" style="box-shadow: none;overflow: hidden;">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            <h4 class="modal-title" id="gridModalLabel">商品详情</h4>
+          </div>
+          <div class="modal-body product_popup_images popup_part" style="padding: 0;">
+            <div id="slider" class="flexslider ">
+              <ul class="slides"></ul>
+            </div>
+            <div id="carousel" class="flexslider flexslider_thin">
+              <ul class="slides"></ul>
+            </div>
+          </div>
+          <div class="popup_part">
+            <h1>【品牌】<span id="popup_brand">品牌</span></h1>
+            <h4>【款号】<span id="popup_code">款号</span></h4>
+            <h4>【产地】<span id="popup_attr_made_in">产地</span></h4>
+            <h4>【季节】<span id="popup_season">季节</span></h4>
+            <h4>【材质】<span id="popup_attr_fabric">材质</span></h4>
+            <h4>【规格】<span id="popup_attr_size_and_fit">规格</span></h4>
+            <h4>【颜色】<span id="popup_attr_color">颜色</span></h4>
+            <h4>【市场价】<span id="popup_price">市场价</span>&nbsp;&nbsp;【折扣】<span id="popup_discount">折扣</span>&nbsp;&nbsp;【采购价】<span id="popup_sell_price">采购价</span></h4>
+
+            <div class="fyi_sub_title">库存量</div>
+            <div class="stock_ku">
+          
+              
+            </div>
+
+            <div class="fyi_sub_title">尺码</div>
+            <div class="stock_ku_size">
+            
+             
+            </div>
+
+            <div class="fyi_sub_title">采购量</div>
+            <div class="stock_ku_buy">
+            
+             
+            </div>
+          <div class="modal-footer">
+            <!-- <button type="button" class="btn btn-default" data-dismiss="modal">Close</button> -->
+            <button type="button" class="btn btn-primary" id="add_in_cart" url="{:url('admin/cart/add')}">加入进货单</button>
+          </div>
+
+          </div>
+          
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div>
+    <div class="clearfix"></div>
+    <!-- 分页 -->
+    {$page}
+    <!-- /分页 -->
+  </div>
+</div>
+{/block}
+{block name="script"}
+<script type="text/javascript">
+  function getSelectedItems() {
+    var query_str = {};
+    var search_options = {'brand':'brand-sel','rec':'rec','all':'all','hot':'hot', 'cat':'cat-sel', 'pcat':'pcat-sel', 'gt':'gt-sel', 'ss':'ss-sel', 'dsct':'dsct-sel'};
+    for (var so in search_options) {
+      if (!search_options.hasOwnProperty(so)) {
+          continue;
+      }
+      var selected_option = $("."+search_options[so]+".chosen").map(function(){return $(this).data('value')});
+      if(selected_option.length>0) {
+        selected_option = selected_option.get().join(',');
+        query_str[so] = selected_option;
+      }
+    }
+
+    search_options = {'code':'code', 'start_price':'start_price', 'end_price':'end_price'};
+    for (var so in search_options) {
+      if (!search_options.hasOwnProperty(so)) {
+          continue;
+      }
+      var selected_option = $("input[name="+search_options[so]+"]").val();
+      if(selected_option.length>0) {
+        query_str[so] = selected_option;
+      }
+    }
+
+    selected_option = $("select[name='sort']").val();
+    if(selected_option.length>0) {
+      query_str['sort'] = selected_option;
+    }
+
+    return $.param(query_str);
+  }
+
+  $("#search").click(function(){
+    var cur_url = "{:url('admin/product/index')}";
+    var sel_items = getSelectedItems();
+    if(sel_items.length>0){
+      window.location.href = cur_url+"?"+sel_items;
+    }
+  });
+
+  $('#cart_add').click(function() {
+    var target, query, buy_nums;
+    var that = this;
+    target = $(this).attr('url');
+    buy_nums = $('.buy-num').filter(function(index, element) {
+        return $(element).val() != ""&&$(element).val() != "0";
+    });
+    //检查加入进货单的商品数量是否在最大最小值范围内，以及是否是整数
+    $('.buy-num-wrapper').removeClass('error');
+    $('.buy-num-wrapper span.text-danger').remove();
+
+    buy_nums.each(function(index, elem) {
+      var msg = '';
+      if(!$.isNumeric($(elem).val())) {
+        msg = '请输入整数';
+      } else if(parseInt($(elem).val())>parseInt($(elem).attr('max'))) {
+        msg = '数量不能超过'+$(elem).attr('max');
+      }
+      if(msg.length>0) {
+        $(elem).parent().addClass('error');
+        $(elem).parent().append('<span class="text-danger">'+msg+'</span>');
+      }
+    });
+    //如果有检测不通过的，则添加warning class并返回
+    if($('.buy-num-wrapper.error').length>0) {
+      updateAlert('数量有误，请检查', 'danger');
+      return;
+    }
+    //ajax调用cart add接口，更新进货单
+    query = buy_nums.serialize();
+
+    $(that).addClass('disabled').attr('autocomplete', 'off').prop('disabled', true);
+    $.post(target, query).success(function(data) {
+      if (data.code == 1) {
+        //成功返回
+        var ret_data = data.data;
+        $('#items_total').text(ret_data.items_total);
+        $('#items_count').text(ret_data.items_count);
+        updateAlert(data.msg + ' 页面即将自动刷新~', 'success');
+        setTimeout(function() {
+          $(that).removeClass('disabled').prop('disabled', false);
+          location.reload();
+        }, 1000);
+      } else {
+        updateAlert(data.msg, 'danger');
+        var ret_data = data.data, msg;
+        $.each(ret_data, function(index, elem) {
+          var err_elem = $('input[name=\''+'{$cart_input_name}'+'\['+elem.product_id+'\]\''+']');
+          msg = '数量不能超过'+elem.max_qty;
+          $(err_elem).parent().addClass('error');
+          $(err_elem).parent().append('<span class="text-danger">'+msg+'</span>');
+        });
+        setTimeout(function() {
+          $(that).removeClass('disabled').prop('disabled', false);
+        }, 1000);
+      }
+    });
+    return true;
+  });
+
+  // 首字母筛选
+  $('.first_letter').hover(function(){
+    $(this).addClass('current_letter').siblings().removeClass('current_letter');
+    $('.trademark_item').hide();
+    var cur_let = $(this).data('initial');
+    $('.trademark_item').each(function(idx,elm){
+      if($(elm).data('initial')==cur_let) {
+        $(elm).show();
+      } else if (cur_let=='0') {
+        $('.trademark_item').show();
+      } else if (cur_let=='-1') {
+        if ($(elm).data('initial')=='9' || $(elm).data('initial')=='8' || $(elm).data('initial')=='7' || $(elm).data('initial')=='6' || $(elm).data('initial')=='5' || $(elm).data('initial')=='4' || $(elm).data('initial')=='3' || $(elm).data('initial')=='2' || $(elm).data('initial')=='1' || $(elm).data('initial')=='0') {
+          $(elm).show();
+        }        
+      }      
+    });
+  });
+
+  // 清空品牌
+  $('#cancel_multi').click(function(){
+    $('.trademark_item').removeClass('chosen');
+    $('.selected_trade').hide();
+  });
+
+  // 清空所有筛选条件
+  $('#cancel').click(function(){
+    $('.to-select').removeClass('chosen');
+  });
+
+  // 单选搜索
+  var multi =0;
+  $(".trademark_item").click(function(){
+    if (!multi) {
+      $('.selected_trade').hide();
+      $('.trademark_item.chosen').toggleClass('chosen');
+      $(this).toggleClass('chosen');
+      var cur_url = "{:url('admin/product/index')}";
+      var sel_items = getSelectedItems();
+      if(sel_items.length>0){
+        window.location.href = cur_url+"?"+sel_items;
+      }
+    }
+  });
+
+  // 多选开关
+  $('.multi_btn').click(function multi_click(){
+    multi = !multi;
+    $('.trade_chosen').toggleClass('chosen');
+    $('.selected_trade').toggleClass('hide');
+    $(this).toggleClass('chosen');
+    $('.cat_action_btnbox').toggleClass('hide');
+  });
+
+  // 多选确认
+  $('#submin_multi').click(function(){
+    multi = !multi;
+    $('.multi_btn').toggleClass('chosen');
+    $('.cat_action_btnbox').toggleClass('hide');
+  })
+
+  // 品牌点击事件
+  $(".to-select").click(function(){
+    $(this).toggleClass('chosen trade_chosen');
+    var brand_id = $(this).data('brand-id');
+    $('.trademark_selected').each(function (index,element) {
+      if($(element).data('brand-id')==brand_id){
+        $(element).toggleClass('hide selected_trade');
+      }
+    });
+  })
+
+  // 已选品牌点击事件
+  $('.trademark_selected').click(function() {
+    $(this).toggleClass('hide');
+    var brand_id = $(this).data('brand-id');
+    $('.trademark_item').each(function (index,element) {
+      if ($(element).data('brand-id')==brand_id) {
+        $(element).toggleClass('chosen');
+      }
+    });
+  });
+
+  // 载入页面是显示已勾选品牌
+  $(document).ready(function(){
+    $('.trademark_item').each(function (index,element) {
+      if ($(element).hasClass('chosen')) {
+        $(element).addClass('trade_chosen');
+        var brand_id = $(element).data('brand-id');
+        $('.trademark_selected').each(function (index1,element1) {
+          if($(element1).data('brand-id')==brand_id){
+            $(element1).toggleClass('hide selected_trade');
+          }
+        })
+      }
+    });
+  });
+
+  // 品类选择
+  var pinlei_multi=0;
+  $('.tag_pinlei').click(function(){
+    pinlei_multi=!pinlei_multi;
+    $('.pinlei').removeClass('chosen');
+    $(this).toggleClass('chosen');
+  });
+  $('.pinlei').click(function(){
+    if (!pinlei_multi) {
+      $('.pinlei').removeClass('chosen');
+      $(this).toggleClass('chosen');
+      var cur_url = "{:url('admin/product/index')}";
+      var sel_items = getSelectedItems();
+      if(sel_items.length>0){
+        window.location.href = cur_url+"?"+sel_items;
+      }
+    }
+  });
+  // 性别选择
+  var xingbie_multi=0;
+  $('.tag_xingbie').click(function(){
+    xingbie_multi=!xingbie_multi;
+    $('.xingbie').removeClass('chosen');
+    $(this).toggleClass('chosen');
+  });
+  $('.xingbie').click(function(){
+    if (!xingbie_multi) {
+      $('.xingbie').removeClass('chosen');
+      $(this).toggleClass('chosen');
+      var cur_url = "{:url('admin/product/index')}";
+      var sel_items = getSelectedItems();
+      if(sel_items.length>0){
+        window.location.href = cur_url+"?"+sel_items;
+      }
+    }
+  });
+  // 季节选择
+  var jijie_multi=0;
+  $('.tag_jijie').click(function(){
+    jijie_multi=!jijie_multi;
+    $('.jijie').removeClass('chosen');
+    $(this).toggleClass('chosen');
+  });
+  $('.jijie').click(function(){
+    if (!jijie_multi) {
+      $('.jijie').removeClass('chosen');
+      $(this).toggleClass('chosen');
+      var cur_url = "{:url('admin/product/index')}";
+      var sel_items = getSelectedItems();
+      if(sel_items.length>0){
+        window.location.href = cur_url+"?"+sel_items;
+      }
+    }
+  });
+  // 折扣选择
+  var zhekou_multi=0;
+  $('.tag_zhekou').click(function(){
+    zhekou_multi=!zhekou_multi;
+    $('.zhekou').removeClass('chosen');
+    $(this).toggleClass('chosen');
+  });
+  $('.zhekou').click(function(){
+    if (!zhekou_multi) {
+      $('.zhekou').removeClass('chosen');
+      $(this).toggleClass('chosen');
+      var cur_url = "{:url('admin/product/index')}";
+      var sel_items = getSelectedItems();
+      if(sel_items.length>0){
+        window.location.href = cur_url+"?"+sel_items;
+      }
+    }
+  });
+
+  $('.img-thumbnail-box').mouseover(function() {
+    $(this).children('.bigimg_p').removeClass('hide');
+  });
+  $('.img-thumbnail-box').mouseleave(function() {
+    $(this).children('.bigimg_p').addClass('hide');
+  });
+
+  $('.liebiao').click(function(){
+    $('.shujuliebiao').removeClass('products_thumb');
+    $('.shujuliebiao').addClass('products_list');
+    $('.list_clearfix').css('float','none');
+  });
+
+  $('.wangge').click(function(){
+    $('.shujuliebiao').addClass('products_thumb');
+    $('.shujuliebiao').removeClass('products_list');
+    $('.list_clearfix').css('float','left');
+  });
+
+  $('#product_popup').on('shown.bs.modal', function() {
+    $('#carousel').removeData("flexslider");
+    $('#slider').removeData("flexslider");
+    // flexslider 初始化
+    $('#carousel').flexslider({
+      animation: "slide",
+      controlNav: false,
+      animationLoop: false,
+      slideshow: false,
+      itemWidth: 55,
+      itemMargin: 8,
+      asNavFor: '#slider'
+    });
+    $('#slider').flexslider({
+      animation: "slide",
+      controlNav: false,
+      animationLoop: false,
+      slideshow: false,
+      sync: "#carousel",
+    });
+  });
+
+  $('.product_pop_btn').click(function(){
+    var target = "{:url('admin/product/getDetail')}";
+    var query = {'pproduct_id':$(this).data('pproduct_id')};
+    $.post(target, query).success(function(data) {
+      if (data.code == 1) {
+        //成功返回
+     
+        var ret_data = data.data;
+        var to_update_keys = ['chs_name', 'brand', 'code', 'season', 'price', 'discount'];
+        //size + stock+购买 begin xiaoqiao
+        var product = ret_data.product;
+        var cart =ret_data.cart_items;
+        $(".stock_ku").html("");
+        $(".stock_ku_size").html("");
+        $(".stock_ku_buy").html("");
+        product.forEach(function(elem){
+
+          if(cart[elem.product_id]){
+            if(elem.stock-cart[elem.product_id]>=0) {
+              $(".stock_ku").append("<span class=\"fyi_sub_count\">"+(elem.stock-cart[elem.product_id])+"</span> ");
+              $(".stock_ku_size").append("<span class=\"fyi_sub_size\">"+elem.size+"</span> ");
+              $(".stock_ku_buy").append("<input type=\"number\" name=\"pd["+elem.product_id+"]\" max=\""+(elem.stock-cart[elem.product_id])+"\" min=\"1\" class=\"fyi_sub_num\"/>");
+            }
+          }else{
+            if(elem.stock>0) {
+              $(".stock_ku").append("<span class=\"fyi_sub_count\">"+elem.stock+"</span> ");
+              $(".stock_ku_size").append("<span class=\"fyi_sub_size\">"+elem.size+"</span> ");
+              $(".stock_ku_buy").append("<input type=\"number\" name=\"pd["+elem.product_id+"]\" max=\""+elem.stock+"\" min=\"1\" class=\"fyi_sub_num\"/>");
+            }
+          }
+          
+        });
+        //size + stock+购买   end
+        to_update_keys.forEach(function(elem){
+          $('#popup_'+elem).text(ret_data[elem]);  
+        });
+        $('#popup_sell_price').text(ret_data['discount']*ret_data['price']/10);  
+        to_update_keys = ['made_in', 'fabric', 'size_and_fit', 'color'];
+        to_update_keys.forEach(function(elem){
+          $('#popup_attr_'+elem).text(ret_data.pproduct_attr[elem]);  
+        });
+        
+        $('#slider').html('<ul class="slides"></ul>');
+        $('#carousel').html('<ul class="slides"></ul>');
+        ret_data.pproduct_image.forEach(function(elem){  
+          $('#slider .slides').append('<li><img src="'+elem.image+'" /></li>');
+          $('#carousel .slides').append('<li><img src="'+elem.thumb_image+'" /></li>');
+        });
+        $('#product_popup').modal('show');
+
+      } else {
+        updateAlert(data.msg, 'danger');
+      }
+    });
+  });
+
+  $("#returnTop").click(function () {
+    var speed=200;//滑动的速度
+    $('body,html').animate({ scrollTop: 0 }, speed);
+    return false;
+ });
+
+  //弹出框 商品 加入进货单功能
+  $('#add_in_cart').click(function() {
+    var target, query, buy_nums;
+    var that = this;
+    target = $(this).attr('url');
+    buy_nums = $('.fyi_sub_num').filter(function(index, element) {
+        return $(element).val() != ""&&$(element).val() != "0";
+    });
+   
+    //检查加入进货单的商品数量是否在最大最小值范围内，以及是否是整数
+    $('.stock_ku_buy').removeClass('error');
+    $('.stock_ku_buy span.text-danger').remove();
+
+    buy_nums.each(function(index, elem) {
+      var msg = '';
+      if(!$.isNumeric($(elem).val())) {
+        msg = '请输入整数';
+      } else if(parseInt($(elem).val())>parseInt($(elem).attr('max'))) {
+        msg = '数量不能超过'+$(elem).attr('max');
+      }
+     
+      if(msg.length>0) {
+        $(elem).parent().addClass('error');
+        $(elem).parent().append('<span class="text-danger">'+msg+'</span>');
+      }
+    });
+    
+    //如果有检测不通过的，则添加warning class并返回
+    if($('.stock_ku_buy.error').length>0) {
+      updateAlert('数量有误，请检查', 'danger');
+      return;
+    }
+
+    //ajax调用cart add接口，更新进货单
+    query = buy_nums.serialize();
+
+    $(that).addClass('disabled').attr('autocomplete', 'off').prop('disabled', true);
+    $.post(target, query).success(function(data) {
+      if (data.code == 1) {
+        //成功返回
+        var ret_data = data.data;
+        $('#items_total').text(ret_data.items_total);
+        $('#items_count').text(ret_data.items_count);
+        updateAlert(data.msg + ' 页面即将自动刷新~', 'success');
+        setTimeout(function() {
+          $(that).removeClass('disabled').prop('disabled', false);
+          location.reload();
+        }, 500);
+      } else {
+        updateAlert(data.msg, 'danger');
+        var ret_data = data.data, msg;
+        $.each(ret_data, function(index, elem) {
+          var err_elem = $('input[name=\''+'{$cart_input_name}'+'\['+elem.product_id+'\]\''+']');
+          msg = '数量不能超过'+elem.max_qty;
+          $(err_elem).parent().addClass('error');
+          $(err_elem).parent().append('<span class="text-danger">'+msg+'</span>');
+        });
+        setTimeout(function() {
+          $(that).removeClass('disabled').prop('disabled', false);
+        }, 500);
+      }
+    });
+    return true;
+  });
+
+</script>
+{/block}

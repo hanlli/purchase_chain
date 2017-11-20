@@ -1,0 +1,132 @@
+{extend name="public/base"/}
+{block name="style"}
+{/block}
+{block name="body"}
+<div>订单管理【管理员 销售部】</div>
+<div style="border-bottom: 2px solid #666;">
+	<p>进货单：</p>
+	<div class="order_select">
+		<p class="">订单号：{$order_info.order_id}</p>
+		<p class="">订单状态：{$order_info.order_status}</p>
+		<p class="">下单日期：{$order_info.date_added}</p>
+		<p class="">合计数量：{$order_info.total_num}</p>
+		<p class="">合计金额：{$order_info.total}</p>
+		<p><button>Excel 导出</button></p>
+	</div>
+	<table border="1" class="table table-hover">
+		<thead>
+			<tr>
+				<td>商品款号</td>
+				<td>图片</td>
+				<td>商品名称</td>
+				<td>商品分类</td>
+				<td>供应商代码</td>
+				<td>市场价</td>
+				<td>折扣</td>
+				<td>采购价</td>
+				<td>颜色</td>
+				<td>SKU</td>
+				<td>尺码</td>
+				<td>数量</td>
+			</tr>
+		</thead>
+		<tbody >
+			{volist name="list" id="vo"}
+			<tr>
+				<?php $rowspan=count($vo['order_product'])+1;?>
+				<td rowspan="{$rowspan}">{$vo.code}</td>
+				<td rowspan="{$rowspan}"><img style="max-width: 200px;" src="{$vo.image}" class="img-thumbnail" ></td>
+				<td rowspan="{$rowspan}">{$vo.name}</td>
+				<td rowspan="{$rowspan}">{$vo.category}</td>
+				<td rowspan="{$rowspan}">{$vo.vendor_code}</td>
+				<td rowspan="{$rowspan}">{$vo.msrp}</td>
+				<td rowspan="{$rowspan}">{$vo.discount}</td>
+				<td rowspan="{$rowspan}">{$vo.price}</td>
+				<td rowspan="{$rowspan}">{$vo.color}</td>
+			</tr>
+				{volist name="vo.order_product" id="op"}
+				<tr>
+					<td style="width: 150px;">{$op.sku}</td>
+					<td>{$op.size}</td>
+					<td>{$op.quantity}</td>
+				</tr>
+				{/volist}
+			{/volist}
+		</tbody>
+	</table>
+	<div class="clearfix"></div>
+  <!-- 分页 -->
+  {$page}
+  <!-- /分页 -->
+</div>
+{present name='refund_infos'}
+{volist name="refund_infos" id="refund_info"}
+<div>
+	<p>退货单：</p>
+	<div class="order_select">
+		<p class="">订单号：{$refund_info.main.refund_id}</p>
+		<p class="">订单状态：{$refund_info.main.refund_status}</p>
+		<p class="">下单日期：{$refund_info.main.date_added}</p>
+		<p class="">合计数量：{$refund_info.main.total_num}</p>
+		<p class="">合计金额：{$refund_info.main.total}</p>
+		<p><button>Excel 导出</button></p>
+	</div>
+
+	<table border="1" class="table table-hover">
+
+		<thead>
+			<tr>
+				<td>商品款号</td>
+				<td>图片</td>
+				<td>商品名称</td>
+				<td>商品分类</td>
+				<td>供应商代码</td>
+				<td>市场价</td>
+				<td>折扣</td>
+				<td>采购价</td>
+				<td>颜色</td>
+				<td>SKU</td>
+				<td>尺码</td>
+				<td>数量</td>
+			</tr>
+		</thead>
+
+		<tbody >
+		 {volist name="refund_info.products" id="vo"}
+			<tr>
+				<?php $rowspan=count($vo['refund_product'])+1;?>
+				<td rowspan="{$rowspan}">{$vo.code}</td>
+				<td rowspan="{$rowspan}"><img src="{$vo.image}" style="max-width: 200px;" class="img-thumbnail" ></td>
+				<td rowspan="{$rowspan}">{$vo.name}</td>
+				<td rowspan="{$rowspan}">{$vo.category}</td>
+				<td rowspan="{$rowspan}">{$vo.vendor_code}</td>
+				<td rowspan="{$rowspan}">{$vo.msrp}</td>
+				<td rowspan="{$rowspan}">{$vo.discount}</td>
+				<td rowspan="{$rowspan}">{$vo.price}</td>
+				<td rowspan="{$rowspan}">{$vo.color}</td>
+			</tr>
+				{volist name="vo.refund_product" id="op"}
+				<tr>
+					<td style="width: 150px;">{$op.sku}</td>
+					<td>{$op.size}</td>
+					<td>{$op.quantity}</td>
+				</tr>
+				{/volist}
+			{/volist}
+		</tbody>
+	</table>
+</div>
+{/volist}
+{/present}
+{/block}
+{block name="script"}
+<script type="text/javascript">
+
+   $("button").click(function () {
+
+       var cur_url = "{:url('admin/order/excelDetail')}";
+       window.location.href =cur_url+"?order_id=" +8;
+   })
+
+</script>
+{/block}

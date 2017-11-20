@@ -1,0 +1,6 @@
+{
+    "require": {
+        "topthink/think-queue": "^1.1",
+        "phpoffice/phpexcel": "dev-master"
+    }
+}

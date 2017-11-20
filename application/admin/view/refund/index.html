@@ -1,0 +1,148 @@
+{extend name="public/base"/}
+{block name="style"}
+{/block}
+{block name="body"}
+<div>创建退货单【管理员 销售部】</div>
+<div>
+  <p></p>
+  <div class="refund_select">
+    <div class="">
+      <span>订单号：</span><input type="text" name="order_id" value="{$order_id}">
+      <button class="btn btn-success" id="search">确定</button>
+    </div>
+    
+  </div>
+
+  <table border="1" class="table table-hover">
+    <thead>
+      <tr>
+        <td>商品款号</td>
+        <td>图片</td>
+        <td>商品名称</td>
+        <td>商品分类</td>
+        <td>供应商代码</td>
+        <td>市场价</td>
+        <td>折扣</td>
+        <td>采购价</td>
+        <td>颜色</td>
+        <td>SKU</td>
+        <td>尺码</td>
+        <td>数量</td>
+        <td>退货/缺货数量</td>
+      </tr>
+    </thead>
+    <tbody >
+      {volist name="list" id="vo"}
+      <tr>
+        <?php $rowspan=count($vo['order_product'])+1;?>
+        <td rowspan="{$rowspan}">{$vo.code}</td>
+        <td rowspan="{$rowspan}"><img src="{$vo.image}" class="img-thumbnail" ></td>
+        <td rowspan="{$rowspan}">{$vo.name}</td>
+        <td rowspan="{$rowspan}">{$vo.category}</td>
+        <td rowspan="{$rowspan}">{$vo.vendor_code}</td>
+        <td rowspan="{$rowspan}">{$vo.msrp}</td>
+        <td rowspan="{$rowspan}">{$vo.discount}</td>
+        <td rowspan="{$rowspan}" class="num">{$vo.price}</td>
+        <td rowspan="{$rowspan}">{$vo.color}</td>
+      </tr>
+        {volist name="vo.order_product" id="op"}
+        <tr>
+          <td>{$op.sku}</td>
+          <td>{$op.size}</td>
+          <td>{$op.quantity}</td>
+          <td class="buy-num-wrapper"><input type="hidden" name="" value="{$vo.price}"/><input class="few" type="text" name="refund_quantity[{$op.order_product_id}]"></td>
+        </tr>
+        {/volist}
+      {/volist}
+    </tbody>
+  </table>
+  <div class="clearfix"></div>
+  <!-- 分页 -->
+  {$page}
+  <!-- /分页 -->
+
+  <div class="pull-right">
+    <p><span>合计退货/缺货数量：</span><span id="refund_total_num"></span></p>
+    <p><span>合计退货/缺货金额：</span><span id="refund_total"></span></p>
+    <button class="btn btn-success" type="button" id="refund_add" url="{:url('add')}">提交退货单</button>
+  </div>
+</div>
+{/block}
+{block name="script"}
+<script type="text/javascript">
+  $("#search").click(function(){
+    var cur_url = "{:url('admin/refund/index')}";
+    var order_id = $('input[name=order_id]').val();
+    if(order_id.length>0){
+      window.location.href = cur_url+"?order_id="+order_id;
+    }
+  });
+
+
+  $(".few").on('blur',function () {
+             var num = 0;
+             var sum = 0;
+              $(".few").each(function (index,elem) {
+
+                  num+=Number($(elem).val());
+
+                  sum+=Number($(elem).siblings().val())*Number($(elem).val());
+
+              });
+
+              $("#refund_total_num").html(num);
+              $("#refund_total").html(sum);
+          })
+
+
+
+  $('#refund_add').click(function() {
+    var target, query;
+    var that = this;
+    target = $(this).attr('url');
+    var refund_product = $('input[name^="refund_quantity["]').filter(function(index, element) {
+        return $(element).val() != ""&&$(element).val() != "0";
+    });
+
+    //检查加入进货单的商品数量是否在最大最小值范围内，以及是否是整数
+    $('.buy-num-wrapper').removeClass('error');
+    $('.buy-num-wrapper span.text-danger').remove();
+    
+    //如果有检测不通过的，则添加warning class并返回
+    if($('.buy-num-wrapper.error').length>0) {
+      updateAlert('数量有误，请检查', 'danger');
+      return;
+    }
+    //ajax调用refund add接口，更新进货单
+    query = refund_product.serialize();
+
+    $(that).addClass('disabled').attr('autocomplete', 'off').prop('disabled', true);
+    $.post(target, query).success(function(data) {
+      if (data.code == 1) {
+        //成功返回
+        var ret_data = data.data;
+        $('#items_total').text(ret_data.items_total);
+        $('#items_count').text(ret_data.items_count);
+        updateAlert(data.msg + ' 页面即将自动刷新~', 'success');
+        setTimeout(function() {
+          $(that).removeClass('disabled').prop('disabled', false);
+          location.reload();
+        }, 1000);
+      } else {
+        updateAlert(data.msg, 'danger');
+        var ret_data = data.data, msg;
+        $.each(ret_data, function(index, elem) {
+          var err_elem = $('input[name="refund_quantity['+elem.order_product_id+']"]');
+          msg = '数量不能超过'+elem.max_qty;
+          $(err_elem).parent().addClass('error');
+          $(err_elem).parent().append('<span class="text-danger">'+msg+'</span>');
+        });
+        setTimeout(function() {
+          $(that).removeClass('disabled').prop('disabled', false);
+        }, 1000);
+      }
+    });
+    return true;
+  });
+</script>
+{/block}

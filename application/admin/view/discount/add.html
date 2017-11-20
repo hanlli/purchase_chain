@@ -1,0 +1,166 @@
+{extend name="public/base"/}
+{block name="body"}
+<div class="main-box clearfix">
+    <header class="main-box-header clearfix">
+        <div class="pull-left">
+            <h2>
+                {$meta_title}
+            </h2>
+        </div>
+    </header>
+    <div class="main-box-body clearfix">
+        <form method="post" action="edit" class="form form-horizontal">
+
+            <div class="form-group">
+                <label class="col-lg-2 control-label">供应商:</label>
+                <div class="col-lg-2">
+
+                    <select id="target" name="target" class="form-control" style="width:auto;">
+                        {volist name="vendor" id="vendor"}
+                        <option value="{$vendor.vendor_id}" {eq name='selected_vendor_id' value="$vendor['vendor_id']"}selected="selected"{/eq} >{$vendor.name}</option>
+                        {/volist}
+                    </select>
+                </div>
+                <button id="search" class="btn btn-success submit-btn ajax-post"  target-form="form-horizontal">确 定</button>
+
+            </div>
+            <div class="main-box-body clearfix">
+                <div class="table-responsive clearfix">
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th>供应商</th>
+                            <th>季节</th>
+                            <th class="text-center">进价折扣</th>
+                            <th>生效时间</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {volist name="vendors" id="vendors"}
+                        {volist name="new_list" id="sdr"}
+                        <tr>
+                            <td>{$vendors.name}</td>
+                            <td>{$sdr.name}</td>
+                            <td style="text-align: center;">
+                            
+                            <input class="form-control" onblur="tip(this)" min="0" max="10" type="number" name="discount[{$vendors.vendor_id}][{$sdr.season_id}][{$sdr.season_discount_rule_id}]" value="{$sdr.discount}"/>
+                            <div></div>
+                            <span class="hidden text-danger"></span>
+                            </td>
+                            <td>{$sdr.from_time}</td>
+                        </tr>
+                        {/volist}
+                        {/volist}
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-lg-2 control-label">生效起始时间:</label>
+                <div class="col-lg-3">
+                    <input id="discount_date" type="text" class="form-control" name="from_time" disabled="disabled" size="15" value="">
+                    <div></div>
+                    <span class="hidden text-danger"></span>
+                </div>
+                <input class="btn btn-success " type="button" id="saveDiscount" target-form="form-horizontal" value="确定"/>
+            </div>
+            <!-- <label class="col-lg-5 control-label">时间填写格式：YYYY-MM-DD HH:MM:SS</label> -->
+        </form>
+
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script type="text/javascript" src="__PUBLIC__/js/bootstrap-editable.min.js"></script>
+<script type="text/javascript">
+    $(function() {
+        //点击搜索
+        $('#search').click(function(){
+            var cur_url = "{:url('admin/discount/add')}";
+            var id = $("#target").val();
+            if(name!=null){
+                window.location.href =cur_url+"?vendor_id="+id;
+            }
+
+        });
+
+    });
+
+    function tip(self){
+        $(function () {
+            var v = $(self).val();
+            if( v<=0.0 || v>10){
+                $(self).siblings('span').text("请输入大于0小于等于10的数").removeClass('hidden');
+                return;
+            }
+            $(self).siblings('span').addClass('hidden');
+            $('#discount_date').removeAttr('disabled');
+        })
+    }
+
+    function isDate(val) {
+        var d = new Date(val);
+        return !isNaN(d.valueOf());
+    }
+    $('#saveDiscount').click(
+        function() {
+        var that = this;
+        //检查每一个折扣数值是否属于(0,10]
+        $('input[name^="discount"]').each(
+            function(idx, elem) {
+                var v = $(elem).val();
+                if(v==''){
+                    return;
+                }
+                if(v<=0.0||v>10) {
+                    $(elem).siblings('span').text("请输入大于0小于等于10的数").removeClass('hidden');
+                }
+            }
+        );
+        if($('input[name^="discount"]').siblings('span').not('.hidden').length>0) {
+            return;
+        }
+        //检查选择的时间是否大于当前时间
+        if(!isDate($('#discount_date').val())) {
+            $('#discount_date').siblings('span').text("请输入有效时间").removeClass('hidden');
+            return;   
+        }
+        if((new Date()).getTime() >= (new Date($('#discount_date').val())).getTime()) {
+            $('#discount_date').siblings('span').text("需大于当前时间").removeClass('hidden');
+            return;
+        }
+        $('#discount_date').siblings('span').addClass('hidden');
+        //发起保存请求
+        var query = $('form').serialize();
+        var target = "{:url('edit')}";
+        $.post(target, query).success(function(data) {
+          if (data.code == 1) {
+            //成功返回
+            var ret_data = data.data;
+            updateAlert(data.msg + ' 页面即将自动刷新~', 'success');
+            setTimeout(function() {
+              $(that).removeClass('disabled').prop('disabled', false);
+              location.reload();
+            }, 500);
+          } else {
+            updateAlert(data.msg, 'danger');
+            // var ret_data = data.data, msg;
+            setTimeout(function() {
+              $(that).removeClass('disabled').prop('disabled', false);
+            }, 500);
+          }
+        });
+    });  
+
+    $('#discount_date').fdatepicker({
+      format: 'yyyy-mm-dd hh:ii:ss',
+      pickTime: true,
+      todayHighlight: true,
+      todayBtn: true
+    });
+
+</script>
+{/block}
+
+
